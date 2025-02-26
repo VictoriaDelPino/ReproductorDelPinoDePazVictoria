@@ -85,11 +85,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Carga la lista de recursos
         recursoList = new ArrayList<>();
-        recursoList.add(new Recurso("Lori Meyers", "El tiempo pasará", 0, "eltiempopasara", "eltiempo.jpg"));
-        recursoList.add(new Recurso("Lori Meyers", "Emborracharme", 2, "https://riberadeltajo.es/PMDM_ut4/LME.mp4", "emborracharme.jpg"));
-        recursoList.add(new Recurso("Manuel Martínez", "Truco de magia", 1, "magia", "magic.jpg"));
-        recursoList.add(new Recurso("Metallica", "Enter Sandman", 0, "entersandman", "entersandman.jpg"));
-
+        recursoList = RecursoManager.loadRecursosFromJSON(this);
         // Inicializa el adaptador y asigna la lista de recursos
         adapter = new ItemRecycleViewAdapter(this, recursoList, recurso -> {
             //Toast.makeText(this, "Reproduciendo: " + recurso.getURI(), Toast.LENGTH_SHORT).show();
