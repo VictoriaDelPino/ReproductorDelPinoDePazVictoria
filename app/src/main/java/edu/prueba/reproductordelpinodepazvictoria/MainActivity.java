@@ -9,6 +9,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -28,9 +30,27 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private ItemRecycleViewAdapter adapter;
     private List<Recurso> recursoList;
-    private AppBarConfiguration mAppBarConfiguration;
     private ActivityMainBinding binding;
-    public static int prueba;
+    private boolean filtroAudio, filtroVideo, filtroStreaming;
+
+    private final ActivityResultLauncher<Intent> filtroLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    Intent data = result.getData();
+                    filtroAudio = data.getBooleanExtra("audio", false);
+                    filtroVideo = data.getBooleanExtra("video", false);
+                    filtroStreaming = data.getBooleanExtra("streaming", false);
+
+                    // Mostrar los valores recibidos
+                    Toast.makeText(this, "Audio: " + filtroAudio +
+                            ", Video: " + filtroVideo +
+                            ", Streaming: " + filtroStreaming, Toast.LENGTH_LONG).show();
+
+                    // Aquí podrías aplicar filtros en el RecyclerView si es necesario
+                }
+            }
+    );
 
 
     @Override
@@ -51,6 +71,9 @@ public class MainActivity extends AppCompatActivity {
         // Inicializa el RecyclerView
         setupRecyclerView();
 
+        filtroAudio=true;
+        filtroVideo= true;
+        filtroStreaming=true;
     }
 
     private void setupRecyclerView() {
@@ -101,10 +124,9 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.itemFiltro) {
-            // Acción al hacer clic en "Settings"
+        if (item.getItemId() == R.id.itemFiltro) {
             Intent intent = new Intent(this, FiltrosActivity.class);
-            startActivity(intent);
+            filtroLauncher.launch(intent);
             return true;
         }
 
