@@ -3,6 +3,8 @@ package edu.prueba.reproductordelpinodepazvictoria;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +14,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.IOException;
@@ -22,10 +25,17 @@ public class ItemRecycleViewAdapter extends RecyclerView.Adapter<ItemRecycleView
 
     private final List<Recurso> recursos;
     private final Context context;
+    private final OnItemClickListener listener;
 
-    public ItemRecycleViewAdapter(Context context, List<Recurso> recursos) {
+    // Interfaz para manejar clics en el botón Play
+    public interface OnItemClickListener {
+        void onPlayClick(Recurso recurso);
+    }
+
+    public ItemRecycleViewAdapter(Context context, List<Recurso> recursos, OnItemClickListener listener) {
         this.context = context;
         this.recursos = recursos;
+        this.listener = listener;
     }
 
     @NonNull
@@ -40,7 +50,7 @@ public class ItemRecycleViewAdapter extends RecyclerView.Adapter<ItemRecycleView
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Recurso recurso = recursos.get(position);
 
-        holder.txtNombre.setText(recurso.getNombre());
+        holder.txtNombre.setText(recurso.getNombre() + "  ");
         holder.txtDescripcion.setText(recurso.getDescripcion());
 
         // Cargar imagen desde assets/images usando Bitmap
@@ -51,11 +61,32 @@ public class ItemRecycleViewAdapter extends RecyclerView.Adapter<ItemRecycleView
             holder.imgCaratula.setImageResource(R.drawable.ic_launcher_foreground); // Imagen por defecto si no se encuentra
         }
 
+        // Seleccionar el icono según el tipo de recurso
+        int iconResId = 0;
+        switch (recurso.getTipo()) {
+            case 0:
+                iconResId = R.mipmap.audio;
+                break;
+            case 1:
+                iconResId = R.mipmap.video;
+                break;
+            case 2:
+                iconResId = R.mipmap.streaming;
+                break;
+        }
+
+        // Configurar el icono al final del TextView
+        if (iconResId != 0) {
+            Drawable icon = ContextCompat.getDrawable(context, iconResId);
+            if (icon != null) {
+                int iconSize = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 20, context.getResources().getDisplayMetrics());
+                icon.setBounds(0, 0, iconSize, iconSize);
+                holder.txtNombre.setCompoundDrawables(null, null, icon, null);
+            }
+        }
+
         // Acción al hacer clic en el botón de play
-        holder.imgBtnPlay.setOnClickListener(v -> {
-            Toast.makeText(context, "Reproduciendo: " + recurso.getURI(), Toast.LENGTH_SHORT).show();
-            // Aquí puedes agregar la lógica para reproducir audio/video
-        });
+        holder.imgBtnPlay.setOnClickListener(v -> listener.onPlayClick(recurso));
     }
 
     @Override
@@ -77,9 +108,6 @@ public class ItemRecycleViewAdapter extends RecyclerView.Adapter<ItemRecycleView
         }
     }
 
-    /**
-     * Método para cargar una imagen desde assets/images usando Bitmap
-     */
     private Bitmap getBitmapFromAssets(String fileName) {
         try {
             InputStream inputStream = context.getAssets().open("images/" + fileName);

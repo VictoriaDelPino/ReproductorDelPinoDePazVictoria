@@ -6,6 +6,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -67,7 +68,24 @@ public class MainActivity extends AppCompatActivity {
         recursoList.add(new Recurso("Metallica", "Enter Sandman", 0, "entersandman", "entersandman.jpg"));
 
         // Inicializa el adaptador y asigna la lista de recursos
-        adapter = new ItemRecycleViewAdapter(this, recursoList);
+        adapter = new ItemRecycleViewAdapter(this, recursoList, recurso -> {
+            //Toast.makeText(this, "Reproduciendo: " + recurso.getURI(), Toast.LENGTH_SHORT).show();
+
+            if (recurso.getTipo() == 1 ) {
+                Toast.makeText(this, "Tipo 1", Toast.LENGTH_SHORT).show();
+
+               /* Intent intent = new Intent(this, VideoPlayerActivity.class);
+                intent.putExtra("video_url", recurso.getURI());
+                startActivity(intent);*/
+            }else if (recurso.getTipo() == 2){
+                Toast.makeText(this, "Tipo 2", Toast.LENGTH_SHORT).show();
+
+            }else if (recurso.getTipo() == 0){
+                Toast.makeText(this, "Tipo 0", Toast.LENGTH_SHORT).show();
+            }
+
+
+        });
         recyclerView.setAdapter(adapter);
 
 
