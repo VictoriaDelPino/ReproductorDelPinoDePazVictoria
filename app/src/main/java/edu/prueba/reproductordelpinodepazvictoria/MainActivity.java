@@ -5,13 +5,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.os.Handler;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Button;
-import android.widget.ImageButton;
-import android.widget.SeekBar;
-import android.widget.TextView;
+import android.widget.MediaController;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -19,20 +15,16 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-import androidx.navigation.ui.AppBarConfiguration;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import edu.prueba.reproductordelpinodepazvictoria.databinding.ActivityMainBinding;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MediaController.MediaPlayerControl {
 
     private RecyclerView recyclerView;
     private ItemRecycleViewAdapter adapter;
@@ -40,12 +32,8 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private boolean filtroAudio, filtroVideo, filtroStreaming;
     private MediaPlayer mediaPlayer;
-    private Handler handler = new Handler();
-
-    private SeekBar seekBar;
-    private ImageButton btnPausaPlay, btnAdelante, btnAtras;
-    private TextView txtTiempoActual;
-    private boolean isPlaying = false;
+    private MediaController mediaController;
+    private boolean shouldHideController = false; // Flag para controlar la visibilidad
 
     private final ActivityResultLauncher<Intent> filtroLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -56,7 +44,6 @@ public class MainActivity extends AppCompatActivity {
                     filtroVideo = data.getBooleanExtra("video", false);
                     filtroStreaming = data.getBooleanExtra("streaming", false);
 
-                    // Mostrar los valores recibidos
                     Toast.makeText(this, "Audio: " + filtroAudio +
                             ", Video: " + filtroVideo +
                             ", Streaming: " + filtroStreaming, Toast.LENGTH_LONG).show();
@@ -74,8 +61,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            v.setPadding(insets.getSystemWindowInsetLeft(), insets.getSystemWindowInsetTop(),
+                    insets.getSystemWindowInsetRight(), insets.getSystemWindowInsetBottom());
             return insets;
         });
 
@@ -83,116 +70,78 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
         setSupportActionBar(binding.toolbar);
 
-        // Reseteamos "primera_vez" para que al cerrar la app de verdad se reinicien los filtros
         SharedPreferences sharedPreferences = getSharedPreferences("FiltrosPrefs", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putBoolean("primera_vez", true);
         editor.apply();
 
+        filtroAudio = true;
+        filtroVideo = true;
+        filtroStreaming = true;
 
-        filtroAudio=true;
-        filtroVideo= true;
-        filtroStreaming=true;
-
-        // Inicializa el RecyclerView
         setupRecyclerView();
-
-        // Inicializa controles de audio
-        setupAudioControls();
+        setupMediaController();
     }
 
     private void setupRecyclerView() {
-        // Vincula el RecyclerView con su ID en el layout
         recyclerView = findViewById(R.id.RecyclerView);
-
-        // Usa un GridLayoutManager con 2 columnas
         recyclerView.setLayoutManager(new GridLayoutManager(this, 1));
 
-        // Carga la lista de recursos
         recursoList = new ArrayList<>();
         List<Recurso> allRecursos = RecursoManager.loadRecursosFromJSON(this);
         for (Recurso recurso : allRecursos) {
-            if ((recurso.getTipo() == 0 && filtroAudio) ) {
+            if ((recurso.getTipo() == 0 && filtroAudio)) {
                 recursoList.add(recurso);
             }
-            if ((recurso.getTipo() == 1 && filtroVideo) ) {
+            if ((recurso.getTipo() == 1 && filtroVideo)) {
                 recursoList.add(recurso);
             }
-            if ((recurso.getTipo() == 2 && filtroStreaming) ) {
+            if ((recurso.getTipo() == 2 && filtroStreaming)) {
                 recursoList.add(recurso);
             }
-
         }
-        // Inicializa el adaptador y asigna la lista de recursos
-        adapter = new ItemRecycleViewAdapter(this, recursoList, recurso -> {
-            //Toast.makeText(this, "Reproduciendo: " + recurso.getURI(), Toast.LENGTH_SHORT).show();
 
+        adapter = new ItemRecycleViewAdapter(this, recursoList, recurso -> {
             if (recurso.getTipo() == 1 || recurso.getTipo() == 2) {
-                detenerAudio(); // Si se abre un video, detener audio
+                detenerAudio();
                 Intent intent = new Intent(this, VideoPlayerActivity.class);
                 intent.putExtra("tipo_video", recurso.getTipo());
                 intent.putExtra("video_url", recurso.getURI());
                 startActivity(intent);
-            }else if (recurso.getTipo() == 0){
-                Toast.makeText(this, "Tipo 0", Toast.LENGTH_SHORT).show();
+            } else if (recurso.getTipo() == 0) {
                 reproducirAudioLocal(recurso.getURI());
             }
-
-
         });
         recyclerView.setAdapter(adapter);
-
-
     }
 
-
-    private void setupAudioControls() {
-        seekBar = findViewById(R.id.seekBar);
-        btnPausaPlay = findViewById(R.id.btnPausaPlay);
-        btnAdelante = findViewById(R.id.btnAdelante);
-        btnAtras = findViewById(R.id.btnAtras);
-        txtTiempoActual = findViewById(R.id.txtTiempoActual);
-
-        // Inicialmente ocultos
-        ocultarControlesAudio();
-
-        btnPausaPlay.setOnClickListener(v -> {
-            if (mediaPlayer != null) {
-                if (isPlaying) {
-                    mediaPlayer.pause();
-                    btnPausaPlay.setImageResource(android.R.drawable.ic_media_play);
-                } else {
-                    mediaPlayer.start();
-                    btnPausaPlay.setImageResource(android.R.drawable.ic_media_pause);
-                    actualizarSeekBar();
+    private void setupMediaController() {
+        mediaController = new MediaController(this) {
+            @Override
+            public void hide() {
+                if (shouldHideController) {
+                    super.hide();
                 }
-                isPlaying = !isPlaying;
             }
-        });
+        };
+        mediaController.setAnchorView(findViewById(R.id.main));
+        mediaController.setMediaPlayer(this);
     }
 
     private void reproducirAudioLocal(String nombreArchivo) {
-        detenerAudio(); // Asegurar que no haya otro audio sonando
+        detenerAudio();
 
         int resId = getResources().getIdentifier(nombreArchivo, "raw", getPackageName());
         if (resId != 0) {
             mediaPlayer = MediaPlayer.create(this, resId);
             mediaPlayer.start();
-            isPlaying = true;
 
-            // Mostrar controles de audio
-            mostrarControlesAudio();
-
-            // Cambiar icono a "Pause"
-            btnPausaPlay.setImageResource(android.R.drawable.ic_media_pause);
-
-            seekBar.setMax(mediaPlayer.getDuration());
-            actualizarSeekBar();
+            shouldHideController = false; // Evita que se oculte mientras se usa
+            mediaController.show(0); // Mostrar siempre
 
             mediaPlayer.setOnCompletionListener(mp -> {
-                btnPausaPlay.setImageResource(android.R.drawable.ic_media_play);
-                isPlaying = false;
-                ocultarControlesAudio();
+                shouldHideController = true; // Permite ocultar el controlador
+                mediaController.hide(); // Se oculta solo al terminar el audio
             });
 
         } else {
@@ -205,41 +154,7 @@ public class MainActivity extends AppCompatActivity {
             mediaPlayer.stop();
             mediaPlayer.release();
             mediaPlayer = null;
-            isPlaying = false;
-            ocultarControlesAudio();
         }
-    }
-
-    private void actualizarSeekBar() {
-        handler.postDelayed(() -> {
-            if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-                seekBar.setProgress(mediaPlayer.getCurrentPosition());
-                txtTiempoActual.setText(formatoTiempo(mediaPlayer.getCurrentPosition()));
-                actualizarSeekBar();
-            }
-        }, 1000);
-    }
-
-    private void ocultarControlesAudio() {
-        seekBar.setVisibility(SeekBar.INVISIBLE);
-        btnPausaPlay.setVisibility(ImageButton.INVISIBLE);
-        btnAdelante.setVisibility(ImageButton.INVISIBLE);
-        btnAtras.setVisibility(ImageButton.INVISIBLE);
-        txtTiempoActual.setVisibility(TextView.INVISIBLE);
-    }
-
-    private void mostrarControlesAudio() {
-        seekBar.setVisibility(SeekBar.VISIBLE);
-        btnPausaPlay.setVisibility(ImageButton.VISIBLE);
-        btnAdelante.setVisibility(ImageButton.VISIBLE);
-        btnAtras.setVisibility(ImageButton.VISIBLE);
-        txtTiempoActual.setVisibility(TextView.VISIBLE);
-    }
-
-    private String formatoTiempo(int millis) {
-        int minutos = (int) TimeUnit.MILLISECONDS.toMinutes(millis);
-        int segundos = (int) (TimeUnit.MILLISECONDS.toSeconds(millis) % 60);
-        return String.format("%02d:%02d", minutos, segundos);
     }
 
     @Override
@@ -248,6 +163,66 @@ public class MainActivity extends AppCompatActivity {
         detenerAudio();
     }
 
+    @Override
+    public boolean canPause() {
+        return true;
+    }
+
+    @Override
+    public boolean canSeekBackward() {
+        return true;
+    }
+
+    @Override
+    public boolean canSeekForward() {
+        return true;
+    }
+
+    @Override
+    public int getBufferPercentage() {
+        return 0;
+    }
+
+    @Override
+    public int getCurrentPosition() {
+        return (mediaPlayer != null) ? mediaPlayer.getCurrentPosition() : 0;
+    }
+
+    @Override
+    public int getDuration() {
+        return (mediaPlayer != null) ? mediaPlayer.getDuration() : 0;
+    }
+
+    @Override
+    public boolean isPlaying() {
+        return (mediaPlayer != null && mediaPlayer.isPlaying());
+    }
+
+    @Override
+    public void pause() {
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            mediaPlayer.pause();
+        }
+    }
+
+    @Override
+    public void seekTo(int pos) {
+        if (mediaPlayer != null) {
+            mediaPlayer.seekTo(pos);
+        }
+    }
+
+    @Override
+    public void start() {
+        if (mediaPlayer != null) {
+            mediaPlayer.start();
+        }
+    }
+
+    @Override
+    public int getAudioSessionId() {
+        return (mediaPlayer != null) ? mediaPlayer.getAudioSessionId() : 0;
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -267,5 +242,4 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
-
 }

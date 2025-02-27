@@ -1,20 +1,19 @@
 package edu.prueba.reproductordelpinodepazvictoria;
 
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.widget.MediaController;
+import android.widget.VideoView;
 import android.content.pm.ActivityInfo;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.exoplayer2.ExoPlayer;
-import com.google.android.exoplayer2.MediaItem;
-import com.google.android.exoplayer2.ui.PlayerView;
-
 public class VideoPlayerActivity extends AppCompatActivity {
 
-    private PlayerView playerView;
-    private ExoPlayer player;
+    private VideoView videoView;
+    private MediaController mediaController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,13 +25,11 @@ public class VideoPlayerActivity extends AppCompatActivity {
         int tipoVideo = getIntent().getIntExtra("tipo_video", -1);
         String videoUrl = getIntent().getStringExtra("video_url");
 
-        // Mostrar Toast con la info recibida
-        Toast.makeText(this, "Tipo de Video: " + tipoVideo + "\nURL: " + videoUrl, Toast.LENGTH_LONG).show();
-
-        // Inicializar PlayerView
-        playerView = findViewById(R.id.playerView);
-        player = new ExoPlayer.Builder(this).build();
-        playerView.setPlayer(player);
+        // Inicializar VideoView y MediaController
+        videoView = findViewById(R.id.videoView);
+        mediaController = new MediaController(this);
+        mediaController.setAnchorView(videoView);
+        videoView.setMediaController(mediaController);
 
         if (videoUrl != null) {
             Uri videoUri;
@@ -45,18 +42,13 @@ public class VideoPlayerActivity extends AppCompatActivity {
                 videoUri = Uri.parse(videoUrl);
             }
 
-            MediaItem mediaItem = new MediaItem.Builder().setUri(videoUri).build();
-            player.setMediaItem(mediaItem);
-            player.prepare();
-            player.play();
+            videoView.setVideoURI(videoUri);
+            videoView.start();
         }
-    }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (player != null) {
-            player.release();
-        }
+        // Cerrar la actividad cuando el video termine
+        videoView.setOnCompletionListener(mp -> finish());
+
+
     }
 }
