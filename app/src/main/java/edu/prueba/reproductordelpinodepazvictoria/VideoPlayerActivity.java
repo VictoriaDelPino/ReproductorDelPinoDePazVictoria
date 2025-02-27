@@ -1,15 +1,14 @@
 package edu.prueba.reproductordelpinodepazvictoria;
 
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.widget.MediaController;
 import android.widget.VideoView;
 import android.content.pm.ActivityInfo;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+//Actividad encargada de la reproducción de videos, ya sean locales o en streaming
 public class VideoPlayerActivity extends AppCompatActivity {
 
     private VideoView videoView;
@@ -18,14 +17,16 @@ public class VideoPlayerActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Fuerza la orientación de la pantalla a horizontal
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         setContentView(R.layout.activity_video_player);
 
-        // Obtener datos del intent
+        // Obtiene los datos del intent
         int tipoVideo = getIntent().getIntExtra("tipo_video", -1);
         String videoUrl = getIntent().getStringExtra("video_url");
 
-        // Inicializar VideoView y MediaController
+        // Inicializa el VideoView y el MediaController
         videoView = findViewById(R.id.videoView);
         mediaController = new MediaController(this);
         mediaController.setAnchorView(videoView);
@@ -34,19 +35,20 @@ public class VideoPlayerActivity extends AppCompatActivity {
         if (videoUrl != null) {
             Uri videoUri;
             if (tipoVideo == 1) {
-                // Video en res/raw
+                // Si el video es local obtiene su URI
                 int resId = getResources().getIdentifier(videoUrl, "raw", getPackageName());
                 videoUri = Uri.parse("android.resource://" + getPackageName() + "/" + resId);
             } else {
-                // Video online (tipo 2)
+                // Si el video es streaming convierte la URL en un URI
                 videoUri = Uri.parse(videoUrl);
             }
 
+            // Asigna la URI al VideoView y comenzar la reproducción
             videoView.setVideoURI(videoUri);
             videoView.start();
         }
 
-        // Cerrar la actividad cuando el video termine
+        // Cierra la actividad automáticamente cuando el video termina
         videoView.setOnCompletionListener(mp -> finish());
 
 

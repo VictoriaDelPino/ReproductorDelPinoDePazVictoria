@@ -27,11 +27,12 @@ public class ItemRecycleViewAdapter extends RecyclerView.Adapter<ItemRecycleView
     private final Context context;
     private final OnItemClickListener listener;
 
-    // Interfaz para manejar clics en el botón Play
+    // Interfaz que maneja el botón Play
     public interface OnItemClickListener {
         void onPlayClick(Recurso recurso);
     }
 
+    // Constructor del adaptador
     public ItemRecycleViewAdapter(Context context, List<Recurso> recursos, OnItemClickListener listener) {
         this.context = context;
         this.recursos = recursos;
@@ -41,6 +42,7 @@ public class ItemRecycleViewAdapter extends RecyclerView.Adapter<ItemRecycleView
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        // Infla el diseño del ítem de la lista
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.activity_item_recurso, parent, false);
         return new ViewHolder(view);
@@ -50,10 +52,11 @@ public class ItemRecycleViewAdapter extends RecyclerView.Adapter<ItemRecycleView
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Recurso recurso = recursos.get(position);
 
+        // Asigna el nombre y la descripción al TextView
         holder.txtNombre.setText(recurso.getNombre() + "  ");
         holder.txtDescripcion.setText(recurso.getDescripcion());
 
-        // Cargar imagen desde assets/images usando Bitmap
+        // Carga la imagen desde assets/images usando Bitmap
         Bitmap bitmap = getBitmapFromAssets(recurso.getImagen());
         if (bitmap != null) {
             holder.imgCaratula.setImageBitmap(bitmap);
@@ -61,7 +64,7 @@ public class ItemRecycleViewAdapter extends RecyclerView.Adapter<ItemRecycleView
             holder.imgCaratula.setImageResource(R.drawable.ic_launcher_foreground); // Imagen por defecto si no se encuentra
         }
 
-        // Seleccionar el icono según el tipo de recurso
+        // Selecciona el icono según el tipo de recurso
         int iconResId = 0;
         switch (recurso.getTipo()) {
             case 0:
@@ -75,7 +78,7 @@ public class ItemRecycleViewAdapter extends RecyclerView.Adapter<ItemRecycleView
                 break;
         }
 
-        // Configurar el icono al final del TextView
+        // Configura el icono al final del TextView
         if (iconResId != 0) {
             Drawable icon = ContextCompat.getDrawable(context, iconResId);
             if (icon != null) {
@@ -85,15 +88,17 @@ public class ItemRecycleViewAdapter extends RecyclerView.Adapter<ItemRecycleView
             }
         }
 
-        // Acción al hacer clic en el botón de play
+        // Configura el botón de reproducción para cada ítem
         holder.imgBtnPlay.setOnClickListener(v -> listener.onPlayClick(recurso));
     }
 
+    // Devuelve el número total de recursos en la lista
     @Override
     public int getItemCount() {
         return recursos.size();
     }
 
+    // ViewHolder que almacena las referencias de los elementos de la vista
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imgCaratula;
         TextView txtNombre, txtDescripcion;
@@ -108,6 +113,7 @@ public class ItemRecycleViewAdapter extends RecyclerView.Adapter<ItemRecycleView
         }
     }
 
+    // Carga una imagen desde la carpeta assets
     private Bitmap getBitmapFromAssets(String fileName) {
         try {
             InputStream inputStream = context.getAssets().open("images/" + fileName);

@@ -13,8 +13,10 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
+//Clase encargada de gestionar la carga de recursos desde el JSON en assets.
 public class RecursoManager {
 
+    //Carga una lista de objetos Recurso desde un archivo JSON
     public static List<Recurso> loadRecursosFromJSON(Context context) {
         List<Recurso> recursos = new ArrayList<>();
         try {
@@ -26,6 +28,7 @@ public class RecursoManager {
             inputStream.read(buffer);
             inputStream.close();
 
+            // Convierte el contenido del buffer a una cadena UTF-8
             String json = new String(buffer, "UTF-8");
 
             // Convierte el JSON a una lista de objetos Recurso usando Gson
@@ -33,6 +36,7 @@ public class RecursoManager {
             Type listType = new TypeToken<RecursosWrapper>() {}.getType();
             RecursosWrapper wrapper = gson.fromJson(json, listType);
 
+            // Si se ha convertido, asigna la lista de recursos
             if (wrapper != null && wrapper.recursos_list != null) {
                 recursos = wrapper.recursos_list;
             }
@@ -44,7 +48,7 @@ public class RecursoManager {
         return recursos;
     }
 
-    // Clase auxiliar para manejar el JSON correctamente
+    // Clase auxiliar para manejar el JSON
     private static class RecursosWrapper {
         List<Recurso> recursos_list;
     }

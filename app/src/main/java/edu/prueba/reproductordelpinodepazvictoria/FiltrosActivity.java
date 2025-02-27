@@ -39,33 +39,33 @@ public class FiltrosActivity extends AppCompatActivity {
         checkBoxStreaming = findViewById(R.id.checkBoxStreaming);
         confirmar = findViewById(R.id.button);
 
-        // Obtener SharedPreferences
+        // Obtiene las preferencias guardadas en SharedPreferences
         sharedPreferences = getSharedPreferences("FiltrosPrefs", Context.MODE_PRIVATE);
 
-        // Verificar si es la primera vez que se abre la app después de cerrarla
+        // Verifica si es la primera vez que se abre la app después de cerrarla
         boolean primeraVez = sharedPreferences.getBoolean("primera_vez", true);
 
         if (primeraVez) {
-            // Si es la primera vez después de cerrar la app, restablecer valores a true
+            // Si es la primera vez después de cerrar la app, restablece valores a true
             savePreferences(true, true, true);
             sharedPreferences.edit().putBoolean("primera_vez", false).apply();
         }
 
-        // Cargar valores guardados
+        // Carga valores guardados
         boolean audio = sharedPreferences.getBoolean("audio", true);
         boolean video = sharedPreferences.getBoolean("video", true);
         boolean streaming = sharedPreferences.getBoolean("streaming", true);
 
-        // Aplicar los valores a los CheckBox
+        // Aplica los valores a los CheckBox
         checkBoxAudio.setChecked(audio);
         checkBoxVideo.setChecked(video);
         checkBoxStreaming.setChecked(streaming);
 
         confirmar.setOnClickListener(v -> {
-            // Guardar valores en SharedPreferences
+            // Guarda valores en SharedPreferences
             savePreferences(checkBoxAudio.isChecked(), checkBoxVideo.isChecked(), checkBoxStreaming.isChecked());
 
-            // Enviar los valores de vuelta a MainActivity
+            // Envia los valores de vuelta a MainActivity
             Intent resultIntent = new Intent();
             resultIntent.putExtra("audio", checkBoxAudio.isChecked());
             resultIntent.putExtra("video", checkBoxVideo.isChecked());
