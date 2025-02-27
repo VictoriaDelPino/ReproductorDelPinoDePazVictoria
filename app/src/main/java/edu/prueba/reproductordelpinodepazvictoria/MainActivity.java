@@ -1,6 +1,8 @@
 package edu.prueba.reproductordelpinodepazvictoria;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -47,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
                             ", Video: " + filtroVideo +
                             ", Streaming: " + filtroStreaming, Toast.LENGTH_LONG).show();
 
-                    // Aquí podrías aplicar filtros en el RecyclerView si es necesario
+                    setupRecyclerView();
                 }
             }
     );
@@ -68,12 +70,20 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         setSupportActionBar(binding.toolbar);
-        // Inicializa el RecyclerView
-        setupRecyclerView();
+
+        // Reseteamos "primera_vez" para que al cerrar la app de verdad se reinicien los filtros
+        SharedPreferences sharedPreferences = getSharedPreferences("FiltrosPrefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean("primera_vez", true);
+        editor.apply();
+
 
         filtroAudio=true;
         filtroVideo= true;
         filtroStreaming=true;
+
+        // Inicializa el RecyclerView
+        setupRecyclerView();
     }
 
     private void setupRecyclerView() {
@@ -85,7 +95,19 @@ public class MainActivity extends AppCompatActivity {
 
         // Carga la lista de recursos
         recursoList = new ArrayList<>();
-        recursoList = RecursoManager.loadRecursosFromJSON(this);
+        List<Recurso> allRecursos = RecursoManager.loadRecursosFromJSON(this);
+        for (Recurso recurso : allRecursos) {
+            if ((recurso.getTipo() == 0 && filtroAudio) ) {
+                recursoList.add(recurso);
+            }
+            if ((recurso.getTipo() == 1 && filtroVideo) ) {
+                recursoList.add(recurso);
+            }
+            if ((recurso.getTipo() == 2 && filtroStreaming) ) {
+                recursoList.add(recurso);
+            }
+
+        }
         // Inicializa el adaptador y asigna la lista de recursos
         adapter = new ItemRecycleViewAdapter(this, recursoList, recurso -> {
             //Toast.makeText(this, "Reproduciendo: " + recurso.getURI(), Toast.LENGTH_SHORT).show();
