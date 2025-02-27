@@ -31,57 +31,5 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <SeekBar
-        android:id="@+id/seekBar"
-        android:layout_width="379dp"
-        android:layout_height="26dp"
-        android:layout_marginBottom="16dp"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <ImageButton
-        android:id="@+id/btnPausaPlay"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toTopOf="@+id/seekBar"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/RecyclerView"
-        app:srcCompat="@android:drawable/ic_media_pause" />
-
-    <ImageButton
-        android:id="@+id/btnAdelante"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="@+id/btnPausaPlay"
-        app:layout_constraintStart_toEndOf="@+id/btnPausaPlay"
-        app:layout_constraintTop_toTopOf="@+id/btnPausaPlay"
-        app:srcCompat="@android:drawable/ic_media_ff" />
-
-    <ImageButton
-        android:id="@+id/btnAtras"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="1dp"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="@+id/btnPausaPlay"
-        app:layout_constraintEnd_toStartOf="@+id/btnPausaPlay"
-        app:layout_constraintTop_toTopOf="@+id/btnPausaPlay"
-        app:srcCompat="@android:drawable/ic_media_rew" />
-
-    <TextView
-        android:id="@+id/txtTiempoActual"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="00:00"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toTopOf="@+id/seekBar"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/btnAdelante"
-        app:layout_constraintTop_toBottomOf="@+id/btnPausaPlay" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
