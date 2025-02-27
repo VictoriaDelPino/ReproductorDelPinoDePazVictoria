@@ -115,12 +115,17 @@ public class MainActivity extends AppCompatActivity {
             if (recurso.getTipo() == 1 ) {
                 Toast.makeText(this, "Tipo 1", Toast.LENGTH_SHORT).show();
 
-               /* Intent intent = new Intent(this, VideoPlayerActivity.class);
+                Intent intent = new Intent(this, VideoPlayerActivity.class);
+                intent.putExtra("tipo_video",recurso.getTipo() );
                 intent.putExtra("video_url", recurso.getURI());
-                startActivity(intent);*/
+
+                startActivity(intent);
             }else if (recurso.getTipo() == 2){
                 Toast.makeText(this, "Tipo 2", Toast.LENGTH_SHORT).show();
-
+                Intent intent = new Intent(this, VideoPlayerActivity.class);
+                intent.putExtra("tipo_video",recurso.getTipo() );
+                intent.putExtra("video_url", recurso.getURI());
+                startActivity(intent);
             }else if (recurso.getTipo() == 0){
                 Toast.makeText(this, "Tipo 0", Toast.LENGTH_SHORT).show();
             }
