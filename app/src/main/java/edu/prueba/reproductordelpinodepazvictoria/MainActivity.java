@@ -257,18 +257,23 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
         return (mediaPlayer != null) ? mediaPlayer.getAudioSessionId() : 0;
     }
 
+
+
     @Override
     protected void onResume() {
         super.onResume();
-
         //Si al volver a la actividad hay un audio reproduciendose vuelve a mostrar el mediacontroller
+
         if (mediaPlayer != null && mediaPlayer.isPlaying()) {
             if (mediaController != null) {
-                mediaController.show(0);
                 shouldHideController = false;
+                mediaController.show(0); // Se muestra de forma indefinida
             }
         }
     }
+
+
+
 
     @Override
     protected void onPause() {
