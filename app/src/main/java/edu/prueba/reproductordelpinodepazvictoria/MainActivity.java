@@ -113,6 +113,12 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
         adapter = new ItemRecycleViewAdapter(this, recursoList, recurso -> {
             if (recurso.getTipo() == 1 || recurso.getTipo() == 2) {
                 detenerAudio();
+                // Oculta y deshabilita temporalmente el MediaController
+                if (mediaController.isShowing()) {
+                    mediaController.hide();
+                }
+                shouldHideController = true;
+
                 Intent intent = new Intent(this, VideoPlayerActivity.class);
                 intent.putExtra("tipo_video", recurso.getTipo());
                 intent.putExtra("video_url", recurso.getURI());
@@ -249,6 +255,29 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
     @Override
     public int getAudioSessionId() {
         return (mediaPlayer != null) ? mediaPlayer.getAudioSessionId() : 0;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        //Si al volver a la actividad hay un audio reproduciendose vuelve a mostrar el mediacontroller
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            if (mediaController != null) {
+                mediaController.show(0);
+                shouldHideController = false;
+            }
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Asegurar que el MediaController se oculta cuando la actividad se pone en pausa
+        if (mediaController != null) {
+            mediaController.hide();
+            shouldHideController = true; // Mantenerlo oculto hasta que sea necesario
+        }
     }
 
     //Infla el menú en la barra de herramientas cuando la actividad se crea
